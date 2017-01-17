@@ -84,13 +84,13 @@ class getID3
 	public $option_tag_lyrics3       = true;  // Read and process Lyrics3 tags
 	public $option_tag_apetag        = true;  // Read and process APE tags
 	public $option_tags_process      = true;  // Copy tags to root key 'tags' and encode to $this->encoding
-	public $option_tags_html         = true;  // Copy tags to root key 'tags_html' properly translated from various encodings to HTML entities
+	public $option_tags_html         = false; // Copy tags to root key 'tags_html' properly translated from various encodings to HTML entities
 
 	// public: Optional tag/comment calucations
 	public $option_extra_info        = true;  // Calculate additional info such as bitrate, channelmode etc
 
 	// public: Optional handling of embedded attachments (e.g. images)
-	public $option_save_attachments  = true; // defaults to true (ATTACHMENTS_INLINE) for backward compatibility
+	public $option_save_attachments  = true;  // defaults to true (ATTACHMENTS_INLINE) for backward compatibility
 
 	// public: Optional calculations
 	public $option_md5_data          = false; // Get MD5 sum of data part - slow
