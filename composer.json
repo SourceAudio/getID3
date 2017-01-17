@@ -1,6 +1,6 @@
 {
     "name": "sourceaudio/getid3",
-    "description": "PHP script that extracts useful information from popular multimedia file formats",
+    "description": "A fork of getID3 intended to be more performant",
     "homepage": "http://www.getid3.org/",
     "keywords": ["php","tags","codecs"],
     "type": "library",
