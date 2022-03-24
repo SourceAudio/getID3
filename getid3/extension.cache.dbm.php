@@ -179,7 +179,7 @@ class getID3_cached_dbm extends getID3
 
 
 	// public: analyze file
-	public function analyze($filename) {
+	public function analyze($filename, $filesize=null, $original_filename='') {
 
 		if (file_exists($filename)) {
 

@@ -72,7 +72,7 @@ if (isset($_REQUEST['deletefile'])) {
 		$deletefilemessage = 'FAILED to delete '.addslashes($_REQUEST['deletefile']).' - file does not exist';
 	}
 	if (isset($_REQUEST['noalert'])) {
-		echo '<b><font color="'.(($deletefilemessage{0} == 'F') ? '#FF0000' : '#008000').'">'.$deletefilemessage.'</font></b><hr>';
+		echo '<b><font color="'.(($deletefilemessage[0] == 'F') ? '#FF0000' : '#008000').'">'.$deletefilemessage.'</font></b><hr>';
 	} else {
 		echo '<script type="text/javascript">alert("'.$deletefilemessage.'");</script>';
 	}
