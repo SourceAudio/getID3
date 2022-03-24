@@ -5,10 +5,10 @@
     "keywords": ["php","tags","codecs"],
     "type": "library",
     "license": "GPL",
-    "require":
-    {
-        "php": ">=5.3.0"
-    },
+    "require": {
+        "php": ">=7.3.0",
+		"ext-libxml": "*"
+	},
     "autoload": {
         "classmap": ["getid3/"]
     }

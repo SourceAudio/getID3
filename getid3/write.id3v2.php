@@ -44,7 +44,6 @@ class getid3_write_id3v2
 			$OldThisFileInfo = $getID3->analyze($this->filename);
 			if (!getid3_lib::intValueSupported($OldThisFileInfo['filesize'])) {
 				$this->errors[] = 'Unable to write ID3v2 because file is larger than '.round(PHP_INT_MAX / 1073741824).'GB';
-				fclose($fp_source);
 				return false;
 			}
 			if ($this->merge_existing_data) {
@@ -393,6 +392,7 @@ class getid3_write_id3v2
 						$this->errors[] = 'Invalid Time Stamp Format byte in '.$frame_name.' ('.$source_data_array['timestampformat'].')';
 					} else {
 						$framedata .= chr($source_data_array['timestampformat']);
+						$previousETCOtimestamp = 0;
 						foreach ($source_data_array as $key => $val) {
 							if (!$this->ID3v2IsValidETCOevent($val['typeid'])) {
 								$this->errors[] = 'Invalid Event Type byte in '.$frame_name.' ('.$val['typeid'].')';
@@ -402,6 +402,7 @@ class getid3_write_id3v2
 									//   or after the previous event. All events MUST be sorted in chronological order.
 									$this->errors[] = 'Out-of-order timestamp in '.$frame_name.' ('.$val['timestamp'].') for Event Type ('.$val['typeid'].')';
 								} else {
+									$previousETCOtimestamp = $val['timestamp'];
 									$framedata .= chr($val['typeid']);
 									$framedata .= getid3_lib::BigEndian2String($val['timestamp'], 4, false);
 								}
@@ -617,7 +618,7 @@ class getid3_write_id3v2
 					if (!$this->IsWithinBitRange($source_data_array['bitsvolume'], 8, false)) {
 						$this->errors[] = 'Invalid Bits For Volume Description byte in '.$frame_name.' ('.$source_data_array['bitsvolume'].') (range = 1 to 255)';
 					} else {
-						$incdecflag .= '00';
+						$incdecflag = '00';
 						$incdecflag .= $source_data_array['incdec']['right']     ? '1' : '0';     // a - Relative volume change, right
 						$incdecflag .= $source_data_array['incdec']['left']      ? '1' : '0';      // b - Relative volume change, left
 						$incdecflag .= $source_data_array['incdec']['rightrear'] ? '1' : '0'; // c - Relative volume change, right back
@@ -835,7 +836,7 @@ class getid3_write_id3v2
 						$this->errors[] = 'Invalid Offset To Next Tag in '.$frame_name;
 					} else {
 						$framedata .= getid3_lib::BigEndian2String($source_data_array['buffersize'], 3, false);
-						$flag .= '0000000';
+						$flag = '0000000';
 						$flag .= $source_data_array['flags']['embededinfo'] ? '1' : '0';
 						$framedata .= chr(bindec($flag));
 						$framedata .= getid3_lib::BigEndian2String($source_data_array['nexttagoffset'], 4, false);
@@ -1002,7 +1003,7 @@ class getid3_write_id3v2
 						$this->errors[] = 'Invalid MIME Type in '.$frame_name.' ('.$source_data_array['mime'].')';
 					} else {
 						$framedata .= chr($source_data_array['encodingid']);
-						unset($pricestring);
+						$pricestrings = [];
 						foreach ($source_data_array['price'] as $key => $val) {
 							if ($this->ID3v2IsValidPriceString($key.$val['value'])) {
 								$pricestrings[] = $key.$val['value'];
@@ -1584,6 +1585,7 @@ class getid3_write_id3v2
 								return false;
 							} else {
 								unset($frame_name);
+								continue 2;
 							}
 						}
 					} else {
@@ -1593,6 +1595,7 @@ class getid3_write_id3v2
 						unset($frame_length);
 						unset($frame_flags);
 						unset($frame_data);
+						continue 2;
 					}
 					if (isset($frame_name) && isset($frame_length) && isset($frame_flags) && isset($frame_data)) {
 						$tagstring .= $frame_name.$frame_length.$frame_flags.$frame_data;

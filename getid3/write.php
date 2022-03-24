@@ -397,9 +397,8 @@ class getid3_writetags
 					break;
 
 				default:
-					$this->errors[] = 'Invalid tag format to delete: "'.$tagformat.'"';
+					$this->errors[] = 'Invalid tag format to delete: "'.$DeleteTagFormat.'"';
 					return false;
-					break;
 			}
 			if (!$success) {
 				return false;

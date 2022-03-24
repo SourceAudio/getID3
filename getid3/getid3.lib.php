@@ -537,8 +537,10 @@ class getid3_lib
 			// http://websec.io/2012/08/27/Preventing-XEE-in-PHP.html
 			// https://core.trac.wordpress.org/changeset/29378
 			$loader = libxml_disable_entity_loader(true);
+			libxml_use_internal_errors(true); // don't log errors. returning false is enough
 			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', LIBXML_NOENT);
 			$return = self::SimpleXMLelement2array($XMLobject);
+			libxml_clear_errors(); // clear any stored errors so they don't eat up memory
 			libxml_disable_entity_loader($loader);
 			return $return;
 		}
