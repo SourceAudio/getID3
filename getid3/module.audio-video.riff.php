@@ -120,7 +120,7 @@ class getid3_riff extends getid3_handler {
 					switch ($nextRIFFheaderID) {
 						case 'RIFF':
 							$chunkdata['chunks'] = $this->ParseRIFF($chunkdata['offset'] + 4, $nextRIFFoffset);
-							if (!isset($thisfile_riff[$nextRIFFtype])) {
+							if (empty($thisfile_riff[$nextRIFFtype])) {
 								$thisfile_riff[$nextRIFFtype] = array();
 							}
 							$thisfile_riff[$nextRIFFtype][] = $chunkdata;
@@ -181,15 +181,15 @@ class getid3_riff extends getid3_handler {
 					$thisfile_audio_dataformat = 'wav';
 				}
 
-				if (isset($thisfile_riff_WAVE['data'][0]['offset'])) {
+				if (!empty($thisfile_riff_WAVE['data'][0]['offset'])) {
 					$info['avdataoffset'] = $thisfile_riff_WAVE['data'][0]['offset'] + 8;
 					$info['avdataend']    = $info['avdataoffset'] + $thisfile_riff_WAVE['data'][0]['size'];
 				}
-				if (isset($thisfile_riff_WAVE['fmt '][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['fmt '][0]['data'])) {
 
 					$thisfile_riff_audio[$streamindex] = self::parseWAVEFORMATex($thisfile_riff_WAVE['fmt '][0]['data']);
 					$thisfile_audio['wformattag'] = $thisfile_riff_audio[$streamindex]['raw']['wFormatTag'];
-					if (!isset($thisfile_riff_audio[$streamindex]['bitrate']) || ($thisfile_riff_audio[$streamindex]['bitrate'] == 0)) {
+					if (empty($thisfile_riff_audio[$streamindex]['bitrate']) || ($thisfile_riff_audio[$streamindex]['bitrate'] == 0)) {
 						$this->error('Corrupt RIFF file: bitrate_audio == zero');
 						return false;
 					}
@@ -208,7 +208,7 @@ class getid3_riff extends getid3_handler {
 					}
 
 					$thisfile_audio['lossless'] = false;
-					if (isset($thisfile_riff_WAVE['data'][0]['offset']) && isset($thisfile_riff_raw['fmt ']['wFormatTag'])) {
+					if (!empty($thisfile_riff_WAVE['data'][0]['offset']) && !empty($thisfile_riff_raw['fmt ']['wFormatTag'])) {
 						switch ($thisfile_riff_raw['fmt ']['wFormatTag']) {
 
 							case 0x0001:  // PCM
@@ -231,7 +231,7 @@ class getid3_riff extends getid3_handler {
 					$thisfile_audio['streams'][$streamindex]['dataformat']   = $thisfile_audio_dataformat;
 				}
 
-				if (isset($thisfile_riff_WAVE['rgad'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['rgad'][0]['data'])) {
 
 					// shortcuts
 					$rgadData = &$thisfile_riff_WAVE['rgad'][0]['data'];
@@ -268,7 +268,7 @@ class getid3_riff extends getid3_handler {
 					}
 				}
 
-				if (isset($thisfile_riff_WAVE['fact'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['fact'][0]['data'])) {
 					$thisfile_riff_raw['fact']['NumberOfSamples'] = $this->EitherEndian2Int(substr($thisfile_riff_WAVE['fact'][0]['data'], 0, 4));
 
 					// This should be a good way of calculating exact playtime,
@@ -283,7 +283,7 @@ class getid3_riff extends getid3_handler {
 					$thisfile_audio['bitrate'] = getid3_lib::CastAsInt($thisfile_riff_raw['fmt ']['nAvgBytesPerSec'] * 8);
 				}
 
-				if (isset($thisfile_riff_WAVE['bext'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['bext'][0]['data'])) {
 					// shortcut
 					$thisfile_riff_WAVE_bext_0 = &$thisfile_riff_WAVE['bext'][0];
 
@@ -311,7 +311,7 @@ class getid3_riff extends getid3_handler {
 					$thisfile_riff['comments']['title'][]  = $thisfile_riff_WAVE_bext_0['title'];
 				}
 
-				if (isset($thisfile_riff_WAVE['MEXT'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['MEXT'][0]['data'])) {
 					// shortcut
 					$thisfile_riff_WAVE_MEXT_0 = &$thisfile_riff_WAVE['MEXT'][0];
 
@@ -331,7 +331,7 @@ class getid3_riff extends getid3_handler {
 					$thisfile_riff_WAVE_MEXT_0['flags']['anciliary_data_right'] = (bool) ($thisfile_riff_WAVE_MEXT_0['raw']['anciliary_data_def'] & 0x0004);
 				}
 
-				if (isset($thisfile_riff_WAVE['cart'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['cart'][0]['data'])) {
 					// shortcut
 					$thisfile_riff_WAVE_cart_0 = &$thisfile_riff_WAVE['cart'][0];
 
@@ -362,7 +362,7 @@ class getid3_riff extends getid3_handler {
 					$thisfile_riff['comments']['title'][]  = $thisfile_riff_WAVE_cart_0['title'];
 				}
 
-				if (isset($thisfile_riff_WAVE['SNDM'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['SNDM'][0]['data'])) {
 					// SoundMiner metadata
 
 					// shortcuts
@@ -408,25 +408,25 @@ class getid3_riff extends getid3_handler {
 						'tracktitle'=>'title',
 					);
 					foreach ($tagmapping as $fromkey => $tokey) {
-						if (isset($thisfile_riff_WAVE_SNDM_0['parsed'][$fromkey])) {
+						if (!empty($thisfile_riff_WAVE_SNDM_0['parsed'][$fromkey])) {
 							$thisfile_riff['comments'][$tokey][] = $thisfile_riff_WAVE_SNDM_0['parsed'][$fromkey];
 						}
 					}
 				}
 
-				if (isset($thisfile_riff_WAVE['iXML'][0]['data'])) {
+				if (!empty($thisfile_riff_WAVE['iXML'][0]['data'])) {
 					// requires functions simplexml_load_string and get_object_vars
 					if ($parsedXML = getid3_lib::XML2array($thisfile_riff_WAVE['iXML'][0]['data'])) {
 						$thisfile_riff_WAVE['iXML'][0]['parsed'] = $parsedXML;
-						if (isset($parsedXML['SPEED']['MASTER_SPEED'])) {
+						if (!empty($parsedXML['SPEED']['MASTER_SPEED'])) {
 							@list($numerator, $denominator) = explode('/', $parsedXML['SPEED']['MASTER_SPEED']);
 							$thisfile_riff_WAVE['iXML'][0]['master_speed'] = $numerator / ($denominator ? $denominator : 1000);
 						}
-						if (isset($parsedXML['SPEED']['TIMECODE_RATE'])) {
+						if (!empty($parsedXML['SPEED']['TIMECODE_RATE'])) {
 							@list($numerator, $denominator) = explode('/', $parsedXML['SPEED']['TIMECODE_RATE']);
 							$thisfile_riff_WAVE['iXML'][0]['timecode_rate'] = $numerator / ($denominator ? $denominator : 1000);
 						}
-						if (isset($parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO']) && !empty($parsedXML['SPEED']['TIMESTAMP_SAMPLE_RATE']) && !empty($thisfile_riff_WAVE['iXML'][0]['timecode_rate'])) {
+						if (!empty($parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO']) && !empty($parsedXML['SPEED']['TIMESTAMP_SAMPLE_RATE']) && !empty($thisfile_riff_WAVE['iXML'][0]['timecode_rate'])) {
 							$samples_since_midnight = floatval(ltrim($parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_HI'].$parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO'], '0'));
 							$thisfile_riff_WAVE['iXML'][0]['timecode_seconds'] = $samples_since_midnight / $parsedXML['SPEED']['TIMESTAMP_SAMPLE_RATE'];
 							$h = floor( $thisfile_riff_WAVE['iXML'][0]['timecode_seconds']       / 3600);
@@ -442,7 +442,7 @@ class getid3_riff extends getid3_handler {
 
 
 
-				if (!isset($thisfile_audio['bitrate']) && isset($thisfile_riff_audio[$streamindex]['bitrate'])) {
+				if (empty($thisfile_audio['bitrate']) && !empty($thisfile_riff_audio[$streamindex]['bitrate'])) {
 					$thisfile_audio['bitrate'] = $thisfile_riff_audio[$streamindex]['bitrate'];
 					$info['playtime_seconds'] = (float) ((($info['avdataend'] - $info['avdataoffset']) * 8) / $thisfile_audio['bitrate']);
 				}
@@ -476,7 +476,7 @@ class getid3_riff extends getid3_handler {
 					unset($getid3_riff);
 				}
 
-				if (isset($thisfile_riff_raw['fmt ']['wFormatTag'])) {
+				if (!empty($thisfile_riff_raw['fmt ']['wFormatTag'])) {
 					switch ($thisfile_riff_raw['fmt ']['wFormatTag']) {
 						case 0x0001: // PCM
 							if (!empty($info['ac3'])) {
@@ -595,7 +595,7 @@ class getid3_riff extends getid3_handler {
 						$this->warning('Extra null byte at end of MP3 data assumed to be RIFF padding and therefore ignored');
 					}
 				}
-				if (isset($thisfile_audio_dataformat) && ($thisfile_audio_dataformat == 'ac3')) {
+				if (!empty($thisfile_audio_dataformat) && ($thisfile_audio_dataformat == 'ac3')) {
 					unset($thisfile_audio['bits_per_sample']);
 					if (!empty($info['ac3']['bitrate']) && ($info['ac3']['bitrate'] != $thisfile_audio['bitrate'])) {
 						$thisfile_audio['bitrate'] = $info['ac3']['bitrate'];
@@ -611,9 +611,9 @@ class getid3_riff extends getid3_handler {
 				$thisfile_video['bitrate_mode'] = 'vbr'; // maybe not, but probably
 				$thisfile_video['dataformat']   = 'avi';
 
-				if (isset($thisfile_riff[$RIFFsubtype]['movi']['offset'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['movi']['offset'])) {
 					$info['avdataoffset'] = $thisfile_riff[$RIFFsubtype]['movi']['offset'] + 8;
-					if (isset($thisfile_riff['AVIX'])) {
+					if (!empty($thisfile_riff['AVIX'])) {
 						$info['avdataend'] = $thisfile_riff['AVIX'][(count($thisfile_riff['AVIX']) - 1)]['chunks']['movi']['offset'] + $thisfile_riff['AVIX'][(count($thisfile_riff['AVIX']) - 1)]['chunks']['movi']['size'];
 					} else {
 						$info['avdataend'] = $thisfile_riff['AVI ']['movi']['offset'] + $thisfile_riff['AVI ']['movi']['size'];
@@ -624,7 +624,7 @@ class getid3_riff extends getid3_handler {
 					}
 				}
 
-				if (isset($thisfile_riff['AVI ']['hdrl']['strl']['indx'])) {
+				if (!empty($thisfile_riff['AVI ']['hdrl']['strl']['indx'])) {
 					//$bIndexType = array(
 					//	0x00 => 'AVI_INDEX_OF_INDEXES',
 					//	0x01 => 'AVI_INDEX_OF_CHUNKS',
@@ -651,7 +651,7 @@ class getid3_riff extends getid3_handler {
 						unset($ahsisd);
 					}
 				}
-				if (isset($thisfile_riff['AVI ']['hdrl']['avih'][$streamindex]['data'])) {
+				if (!empty($thisfile_riff['AVI ']['hdrl']['avih'][$streamindex]['data'])) {
 					$avihData = $thisfile_riff['AVI ']['hdrl']['avih'][$streamindex]['data'];
 
 					// shortcut
@@ -717,14 +717,14 @@ class getid3_riff extends getid3_handler {
 					$thisfile_riff_video_current['frame_rate'] = round(1000000 / $thisfile_riff_raw_avih['dwMicroSecPerFrame'], 3);
 					$thisfile_video['frame_rate'] = $thisfile_riff_video_current['frame_rate'];
 				}
-				if (isset($thisfile_riff['AVI ']['hdrl']['strl']['strh'][0]['data'])) {
+				if (!empty($thisfile_riff['AVI ']['hdrl']['strl']['strh'][0]['data'])) {
 					if (is_array($thisfile_riff['AVI ']['hdrl']['strl']['strh'])) {
 						for ($i = 0; $i < count($thisfile_riff['AVI ']['hdrl']['strl']['strh']); $i++) {
-							if (isset($thisfile_riff['AVI ']['hdrl']['strl']['strh'][$i]['data'])) {
+							if (!empty($thisfile_riff['AVI ']['hdrl']['strl']['strh'][$i]['data'])) {
 								$strhData = $thisfile_riff['AVI ']['hdrl']['strl']['strh'][$i]['data'];
 								$strhfccType = substr($strhData,  0, 4);
 
-								if (isset($thisfile_riff['AVI ']['hdrl']['strl']['strf'][$i]['data'])) {
+								if (!empty($thisfile_riff['AVI ']['hdrl']['strl']['strf'][$i]['data'])) {
 									$strfData = $thisfile_riff['AVI ']['hdrl']['strl']['strf'][$i]['data'];
 
 									// shortcut
@@ -734,7 +734,7 @@ class getid3_riff extends getid3_handler {
 										case 'auds':
 											$thisfile_audio['bitrate_mode'] = 'cbr';
 											$thisfile_audio_dataformat      = 'wav';
-											if (isset($thisfile_riff_audio) && is_array($thisfile_riff_audio)) {
+											if (!empty($thisfile_riff_audio) && is_array($thisfile_riff_audio)) {
 												$streamindex = count($thisfile_riff_audio);
 											}
 
@@ -823,7 +823,7 @@ class getid3_riff extends getid3_handler {
 
 											$thisfile_riff_video_current['codec'] = self::fourccLookup($thisfile_riff_raw_strh_current['fccHandler']);
 											$thisfile_video['fourcc']             = $thisfile_riff_raw_strh_current['fccHandler'];
-											if (!$thisfile_riff_video_current['codec'] && isset($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc']) && self::fourccLookup($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'])) {
+											if (!$thisfile_riff_video_current['codec'] && !empty($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc']) && self::fourccLookup($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'])) {
 												$thisfile_riff_video_current['codec'] = self::fourccLookup($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc']);
 												$thisfile_video['fourcc']             = $thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'];
 											}
@@ -865,7 +865,7 @@ class getid3_riff extends getid3_handler {
 								}
 							}
 
-							if (isset($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'])) {
+							if (!empty($thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'])) {
 
 								$thisfile_video['fourcc'] = $thisfile_riff_raw_strf_strhfccType_streamindex['fourcc'];
 								if (self::fourccLookup($thisfile_video['fourcc'])) {
@@ -918,7 +918,7 @@ class getid3_riff extends getid3_handler {
 
 				$info['avdataoffset'] = 44;
 
-				if (isset($thisfile_riff['CDDA']['fmt '][0]['data'])) {
+				if (!empty($thisfile_riff['CDDA']['fmt '][0]['data'])) {
 					// shortcut
 					$thisfile_riff_CDDA_fmt_0 = &$thisfile_riff['CDDA']['fmt '][0];
 
@@ -955,7 +955,7 @@ class getid3_riff extends getid3_handler {
 				$thisfile_audio_dataformat      = 'aiff';
 				$thisfile_audio['lossless']     = true;
 
-				if (isset($thisfile_riff[$RIFFsubtype]['SSND'][0]['offset'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['SSND'][0]['offset'])) {
 					$info['avdataoffset'] = $thisfile_riff[$RIFFsubtype]['SSND'][0]['offset'] + 8;
 					$info['avdataend']    = $info['avdataoffset'] + $thisfile_riff[$RIFFsubtype]['SSND'][0]['size'];
 					if ($info['avdataend'] > $info['filesize']) {
@@ -969,7 +969,7 @@ class getid3_riff extends getid3_handler {
 					}
 				}
 
-				if (isset($thisfile_riff[$RIFFsubtype]['COMM'][0]['data'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['COMM'][0]['data'])) {
 
 					// shortcut
 					$thisfile_riff_RIFFsubtype_COMM_0_data = &$thisfile_riff[$RIFFsubtype]['COMM'][0]['data'];
@@ -1026,7 +1026,7 @@ class getid3_riff extends getid3_handler {
 					$info['playtime_seconds'] = $thisfile_riff_audio['total_samples'] / $thisfile_audio['sample_rate'];
 				}
 
-				if (isset($thisfile_riff[$RIFFsubtype]['COMT'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['COMT'])) {
 					$offset = 0;
 					$CommentCount                                   = getid3_lib::BigEndian2Int(substr($thisfile_riff[$RIFFsubtype]['COMT'][0]['data'], $offset, 2), false);
 					$offset += 2;
@@ -1047,12 +1047,12 @@ class getid3_riff extends getid3_handler {
 
 				$CommentsChunkNames = array('NAME'=>'title', 'author'=>'artist', '(c) '=>'copyright', 'ANNO'=>'comment');
 				foreach ($CommentsChunkNames as $key => $value) {
-					if (isset($thisfile_riff[$RIFFsubtype][$key][0]['data'])) {
+					if (!empty($thisfile_riff[$RIFFsubtype][$key][0]['data'])) {
 						$thisfile_riff['comments'][$value][] = $thisfile_riff[$RIFFsubtype][$key][0]['data'];
 					}
 				}
 /*
-				if (isset($thisfile_riff[$RIFFsubtype]['ID3 '])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['ID3 '])) {
 					getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v2.php', __FILE__, true);
 					$getid3_temp = new getID3();
 					$getid3_temp->openfile($this->getid3->filename);
@@ -1076,7 +1076,7 @@ class getid3_riff extends getid3_handler {
 				$thisfile_audio['bits_per_sample'] = 8;
 				$thisfile_audio['channels']        = 1; // overridden below, if need be
 
-				if (isset($thisfile_riff[$RIFFsubtype]['BODY'][0]['offset'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['BODY'][0]['offset'])) {
 					$info['avdataoffset'] = $thisfile_riff[$RIFFsubtype]['BODY'][0]['offset'] + 8;
 					$info['avdataend']    = $info['avdataoffset'] + $thisfile_riff[$RIFFsubtype]['BODY'][0]['size'];
 					if ($info['avdataend'] > $info['filesize']) {
@@ -1084,7 +1084,7 @@ class getid3_riff extends getid3_handler {
 					}
 				}
 
-				if (isset($thisfile_riff[$RIFFsubtype]['VHDR'][0]['offset'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['VHDR'][0]['offset'])) {
 					// shortcut
 					$thisfile_riff_RIFFsubtype_VHDR_0 = &$thisfile_riff[$RIFFsubtype]['VHDR'][0];
 
@@ -1117,7 +1117,7 @@ class getid3_riff extends getid3_handler {
 					}
 				}
 
-				if (isset($thisfile_riff[$RIFFsubtype]['CHAN'][0]['data'])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['CHAN'][0]['data'])) {
 					$ChannelsIndex = getid3_lib::BigEndian2Int(substr($thisfile_riff[$RIFFsubtype]['CHAN'][0]['data'], 0, 4));
 					switch ($ChannelsIndex) {
 						case 6: // Stereo
@@ -1138,7 +1138,7 @@ class getid3_riff extends getid3_handler {
 
 				$CommentsChunkNames = array('NAME'=>'title', 'author'=>'artist', '(c) '=>'copyright', 'ANNO'=>'comment');
 				foreach ($CommentsChunkNames as $key => $value) {
-					if (isset($thisfile_riff[$RIFFsubtype][$key][0]['data'])) {
+					if (!empty($thisfile_riff[$RIFFsubtype][$key][0]['data'])) {
 						$thisfile_riff['comments'][$value][] = $thisfile_riff[$RIFFsubtype][$key][0]['data'];
 					}
 				}
@@ -1175,7 +1175,7 @@ class getid3_riff extends getid3_handler {
 				$info['fileformat'] = 'webp';
 				$info['mime_type']  = 'image/webp';
 
-$this->error('WebP image parsing not supported in this version of getID3()');
+				$this->error('WebP image parsing not supported in this version of getID3()');
 				break;
 
 			default:
@@ -1190,13 +1190,13 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 				$ID3v2_key_good = 'id3 ';
 				$ID3v2_keys_bad = array('ID3 ', 'tag ');
 				foreach ($ID3v2_keys_bad as $ID3v2_key_bad) {
-					if (isset($thisfile_riff[$RIFFsubtype][$ID3v2_key_bad]) && !array_key_exists($ID3v2_key_good, $thisfile_riff[$RIFFsubtype])) {
+					if (!empty($thisfile_riff[$RIFFsubtype][$ID3v2_key_bad]) && !array_key_exists($ID3v2_key_good, $thisfile_riff[$RIFFsubtype])) {
 						$thisfile_riff[$RIFFsubtype][$ID3v2_key_good] = $thisfile_riff[$RIFFsubtype][$ID3v2_key_bad];
 						$this->warning('mapping "'.$ID3v2_key_bad.'" chunk to "'.$ID3v2_key_good.'"');
 					}
 				}
 
-				if (isset($thisfile_riff[$RIFFsubtype]['id3 '])) {
+				if (!empty($thisfile_riff[$RIFFsubtype]['id3 '])) {
 					getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v2.php', __FILE__, true);
 
 					$getid3_temp = new getID3();
@@ -1211,13 +1211,13 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 				break;
 		}
 
-		if (isset($thisfile_riff_WAVE['DISP']) && is_array($thisfile_riff_WAVE['DISP'])) {
+		if (!empty($thisfile_riff_WAVE['DISP']) && is_array($thisfile_riff_WAVE['DISP'])) {
 			$thisfile_riff['comments']['title'][] = trim(substr($thisfile_riff_WAVE['DISP'][count($thisfile_riff_WAVE['DISP']) - 1]['data'], 4));
 		}
-		if (isset($thisfile_riff_WAVE['INFO']) && is_array($thisfile_riff_WAVE['INFO'])) {
+		if (!empty($thisfile_riff_WAVE['INFO']) && is_array($thisfile_riff_WAVE['INFO'])) {
 			self::parseComments($thisfile_riff_WAVE['INFO'], $thisfile_riff['comments']);
 		}
-		if (isset($thisfile_riff['AVI ']['INFO']) && is_array($thisfile_riff['AVI ']['INFO'])) {
+		if (!empty($thisfile_riff['AVI ']['INFO']) && is_array($thisfile_riff['AVI ']['INFO'])) {
 			self::parseComments($thisfile_riff['AVI ']['INFO'], $thisfile_riff['comments']);
 		}
 
@@ -1225,32 +1225,32 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 			$thisfile_audio['encoder'] = $info['mpeg']['audio']['LAME']['short_version'];
 		}
 
-		if (!isset($info['playtime_seconds'])) {
+		if (empty($info['playtime_seconds'])) {
 			$info['playtime_seconds'] = 0;
 		}
-		if (isset($thisfile_riff_raw['strh'][0]['dwLength']) && isset($thisfile_riff_raw['avih']['dwMicroSecPerFrame'])) {
+		if (!empty($thisfile_riff_raw['strh'][0]['dwLength']) && !empty($thisfile_riff_raw['avih']['dwMicroSecPerFrame'])) {
 			// needed for >2GB AVIs where 'avih' chunk only lists number of frames in that chunk, not entire movie
 			$info['playtime_seconds'] = $thisfile_riff_raw['strh'][0]['dwLength'] * ($thisfile_riff_raw['avih']['dwMicroSecPerFrame'] / 1000000);
-		} elseif (isset($thisfile_riff_raw['avih']['dwTotalFrames']) && isset($thisfile_riff_raw['avih']['dwMicroSecPerFrame'])) {
+		} elseif (!empty($thisfile_riff_raw['avih']['dwTotalFrames']) && !empty($thisfile_riff_raw['avih']['dwMicroSecPerFrame'])) {
 			$info['playtime_seconds'] = $thisfile_riff_raw['avih']['dwTotalFrames'] * ($thisfile_riff_raw['avih']['dwMicroSecPerFrame'] / 1000000);
 		}
 
 		if ($info['playtime_seconds'] > 0) {
-			if (isset($thisfile_riff_audio) && isset($thisfile_riff_video)) {
+			if (!empty($thisfile_riff_audio) && !empty($thisfile_riff_video)) {
 
-				if (!isset($info['bitrate'])) {
+				if (empty($info['bitrate'])) {
 					$info['bitrate'] = ((($info['avdataend'] - $info['avdataoffset']) / $info['playtime_seconds']) * 8);
 				}
 
-			} elseif (isset($thisfile_riff_audio) && !isset($thisfile_riff_video)) {
+			} elseif (!empty($thisfile_riff_audio) && empty($thisfile_riff_video)) {
 
-				if (!isset($thisfile_audio['bitrate'])) {
+				if (empty($thisfile_audio['bitrate'])) {
 					$thisfile_audio['bitrate'] = ((($info['avdataend'] - $info['avdataoffset']) / $info['playtime_seconds']) * 8);
 				}
 
-			} elseif (!isset($thisfile_riff_audio) && isset($thisfile_riff_video)) {
+			} elseif (empty($thisfile_riff_audio) && !empty($thisfile_riff_video)) {
 
-				if (!isset($thisfile_video['bitrate'])) {
+				if (empty($thisfile_video['bitrate'])) {
 					$thisfile_video['bitrate'] = ((($info['avdataend'] - $info['avdataoffset']) / $info['playtime_seconds']) * 8);
 				}
 
@@ -1258,7 +1258,7 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 		}
 
 
-		if (isset($thisfile_riff_video) && isset($thisfile_audio['bitrate']) && ($thisfile_audio['bitrate'] > 0) && ($info['playtime_seconds'] > 0)) {
+		if (!empty($thisfile_riff_video) && !empty($thisfile_audio['bitrate']) && ($thisfile_audio['bitrate'] > 0) && ($info['playtime_seconds'] > 0)) {
 
 			$info['bitrate'] = ((($info['avdataend'] - $info['avdataoffset']) / $info['playtime_seconds']) * 8);
 			$thisfile_audio['bitrate'] = 0;
@@ -1275,7 +1275,7 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 			}
 		}
 
-		if (isset($info['mpeg']['audio'])) {
+		if (!empty($info['mpeg']['audio'])) {
 			$thisfile_audio_dataformat      = 'mp'.$info['mpeg']['audio']['layer'];
 			$thisfile_audio['sample_rate']  = $info['mpeg']['audio']['sample_rate'];
 			$thisfile_audio['channels']     = $info['mpeg']['audio']['channels'];
@@ -1489,7 +1489,7 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 											$getid3_temp->info['avdataend']    = $this->ftell() + $AudioChunkSize;
 											$getid3_mp3 = new getid3_mp3($getid3_temp, __CLASS__);
 											$getid3_mp3->getOnlyMPEGaudioInfo($getid3_temp->info['avdataoffset'], false);
-											if (isset($getid3_temp->info['mpeg']['audio'])) {
+											if (!empty($getid3_temp->info['mpeg']['audio'])) {
 												$info['mpeg']['audio']         = $getid3_temp->info['mpeg']['audio'];
 												$info['audio']                 = $getid3_temp->info['audio'];
 												$info['audio']['dataformat']   = 'mp'.$info['mpeg']['audio']['layer'];
@@ -1530,7 +1530,7 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 
 						} else {
 
-							if (!isset($RIFFchunk[$listname])) {
+							if (empty($RIFFchunk[$listname])) {
 								$RIFFchunk[$listname] = array();
 							}
 							$LISTchunkParent    = $listname;
@@ -1548,7 +1548,7 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 							break;
 						}
 						$thisindex = 0;
-						if (isset($RIFFchunk[$chunkname]) && is_array($RIFFchunk[$chunkname])) {
+						if (!empty($RIFFchunk[$chunkname]) && is_array($RIFFchunk[$chunkname])) {
 							$thisindex = count($RIFFchunk[$chunkname]);
 						}
 						$RIFFchunk[$chunkname][$thisindex]['offset'] = $this->ftell() - 8;
@@ -1692,10 +1692,10 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 									$RIFFchunk[$LISTchunkParent][$chunkname][$thisindex]['size']   = $RIFFchunk[$chunkname][$thisindex]['size'];
 									unset($RIFFchunk[$chunkname][$thisindex]['offset']);
 									unset($RIFFchunk[$chunkname][$thisindex]['size']);
-									if (isset($RIFFchunk[$chunkname][$thisindex]) && empty($RIFFchunk[$chunkname][$thisindex])) {
+									if (!empty($RIFFchunk[$chunkname][$thisindex]) && empty($RIFFchunk[$chunkname][$thisindex])) {
 										unset($RIFFchunk[$chunkname][$thisindex]);
 									}
-									if (isset($RIFFchunk[$chunkname]) && empty($RIFFchunk[$chunkname])) {
+									if (!empty($RIFFchunk[$chunkname]) && empty($RIFFchunk[$chunkname])) {
 										unset($RIFFchunk[$chunkname]);
 									}
 									$RIFFchunk[$LISTchunkParent][$chunkname][$thisindex]['data'] = $this->fread($chunksize);
@@ -1743,8 +1743,8 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 			$getid3_temp->info['warning']      = $info['warning'];
 			$getid3_temp->info['error']        = $info['error'];
 			$getid3_temp->info['comments']     = $info['comments'];
-			$getid3_temp->info['audio']        = (isset($info['audio']) ? $info['audio'] : array());
-			$getid3_temp->info['video']        = (isset($info['video']) ? $info['video'] : array());
+			$getid3_temp->info['audio']        = (!empty($info['audio']) ? $info['audio'] : array());
+			$getid3_temp->info['video']        = (!empty($info['video']) ? $info['video'] : array());
 			$getid3_riff = new getid3_riff($getid3_temp);
 			$getid3_riff->Analyze();
 
@@ -1803,10 +1803,10 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 			'____'=>'comment',
 		);
 		foreach ($RIFFinfoKeyLookup as $key => $value) {
-			if (isset($RIFFinfoArray[$key])) {
+			if (!empty($RIFFinfoArray[$key])) {
 				foreach ($RIFFinfoArray[$key] as $commentid => $commentdata) {
 					if (trim($commentdata['data']) != '') {
-						if (isset($CommentsTargetArray[$value])) {
+						if (!empty($CommentsTargetArray[$value])) {
 							$CommentsTargetArray[$value][] =     trim($commentdata['data']);
 						} else {
 							$CommentsTargetArray[$value] = array(trim($commentdata['data']));
@@ -1978,8 +1978,8 @@ $this->error('WebP image parsing not supported in this version of getID3()');
 		//$parsed['padding'] =             substr($DIVXTAG, 116,  5);  // 5-byte null
 		//$parsed['magic']   =             substr($DIVXTAG, 121,  7);  // "DIVXTAG"
 
-		$parsed['genre']  = (isset($DIVXTAGgenre[$parsed['genre_id']])   ? $DIVXTAGgenre[$parsed['genre_id']]   : $parsed['genre_id']);
-		$parsed['rating'] = (isset($DIVXTAGrating[$parsed['rating_id']]) ? $DIVXTAGrating[$parsed['rating_id']] : $parsed['rating_id']);
+		$parsed['genre']  = (!empty($DIVXTAGgenre[$parsed['genre_id']])   ? $DIVXTAGgenre[$parsed['genre_id']]   : $parsed['genre_id']);
+		$parsed['rating'] = (!empty($DIVXTAGrating[$parsed['rating_id']]) ? $DIVXTAGrating[$parsed['rating_id']] : $parsed['rating_id']);
 
 		if (!$raw) {
 			unset($parsed['genre_id'], $parsed['rating_id']);
