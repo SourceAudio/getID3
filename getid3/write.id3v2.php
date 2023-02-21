@@ -1718,7 +1718,7 @@ class getid3_write_id3v2
 	}
 
 	public function ID3v2IsValidAPICpicturetype($picturetype) {
-		if (($picturetype >= 0) && ($picturetype <= 0x14) && ($this->majorversion >= 2) && ($this->majorversion <= 4)) {
+		if (((int)$picturetype >= 0) && ((int)$picturetype <= 0x14) && ($this->majorversion >= 2) && ($this->majorversion <= 4)) {
 			return true;
 		}
 		return false;
