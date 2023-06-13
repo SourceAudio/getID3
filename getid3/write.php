@@ -560,7 +560,7 @@ throw new Exception('$this->overwrite_tags=false is known to be buggy in this ve
 										// if UTF-8 string does not include any characters above chr(127) then it is identical to ISO-8859-1
 										$stringValue = (string) $value;
 										for ($i = 0; $i < strlen($stringValue); $i++) {
-											if (ord($stringValue[$i]) > 127) {
+											if (!is_null($stringValue[$i]) && ord($stringValue[$i]) > 127) {
 												break 2;
 											}
 										}
