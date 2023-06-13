@@ -50,6 +50,8 @@ class AudioInfo {
 	*/
 	var $result = NULL;
 	var $info   = NULL;
+	
+	public $getID3;
 
 
 

@@ -72,6 +72,11 @@
 
 class getID3_cached_dbm extends getID3
 {
+	
+	public $lock;
+	public $dba;
+	public $cache_type;
+	public $dbm_filename;
 
 	// public: constructor - see top of this file for cache type and cache_options
 	public function __construct($cache_type, $dbm_filename, $lock_filename) {
