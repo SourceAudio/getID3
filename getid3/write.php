@@ -558,8 +558,9 @@ throw new Exception('$this->overwrite_tags=false is known to be buggy in this ve
 								if (!$ID3v2_tag_data_converted && ($this->tag_encoding == 'UTF-8')) {
 									do {
 										// if UTF-8 string does not include any characters above chr(127) then it is identical to ISO-8859-1
-										for ($i = 0; $i < strlen($value); $i++) {
-											if (ord($value[$i]) > 127) {
+										$stringValue = (string) $value;
+										for ($i = 0; $i < strlen($stringValue); $i++) {
+											if (ord($stringValue[$i]) > 127) {
 												break 2;
 											}
 										}
