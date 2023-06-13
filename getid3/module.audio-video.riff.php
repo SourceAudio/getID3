@@ -405,7 +405,6 @@ class getid3_riff extends getid3_handler {
 						'tracktitle'=>'title',
 						'category'  =>'genre',
 						'cdtitle'   =>'album',
-						'tracktitle'=>'title',
 					);
 					foreach ($tagmapping as $fromkey => $tokey) {
 						if (!empty($thisfile_riff_WAVE_SNDM_0['parsed'][$fromkey])) {
@@ -420,11 +419,11 @@ class getid3_riff extends getid3_handler {
 						$thisfile_riff_WAVE['iXML'][0]['parsed'] = $parsedXML;
 						if (!empty($parsedXML['SPEED']['MASTER_SPEED'])) {
 							@list($numerator, $denominator) = explode('/', $parsedXML['SPEED']['MASTER_SPEED']);
-							$thisfile_riff_WAVE['iXML'][0]['master_speed'] = $numerator / ($denominator ? $denominator : 1000);
+							$thisfile_riff_WAVE['iXML'][0]['master_speed'] = $numerator / ($denominator ?: 1000);
 						}
 						if (!empty($parsedXML['SPEED']['TIMECODE_RATE'])) {
 							@list($numerator, $denominator) = explode('/', $parsedXML['SPEED']['TIMECODE_RATE']);
-							$thisfile_riff_WAVE['iXML'][0]['timecode_rate'] = $numerator / ($denominator ? $denominator : 1000);
+							$thisfile_riff_WAVE['iXML'][0]['timecode_rate'] = $numerator / ($denominator ?: 1000);
 						}
 						if (!empty($parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO']) && !empty($parsedXML['SPEED']['TIMESTAMP_SAMPLE_RATE']) && !empty($thisfile_riff_WAVE['iXML'][0]['timecode_rate'])) {
 							$samples_since_midnight = floatval(ltrim($parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_HI'].$parsedXML['SPEED']['TIMESTAMP_SAMPLES_SINCE_MIDNIGHT_LO'], '0'));
@@ -1112,7 +1111,7 @@ class getid3_riff extends getid3_handler {
 							break;
 
 						default:
-							$this->warning('Unexpected sCompression value in 8SVX.VHDR chunk - expecting 0 or 1, found "'.sCompression.'"');
+							$this->warning('Unexpected sCompression value in 8SVX.VHDR chunk - expecting 0 or 1, found "'.$thisfile_riff_RIFFsubtype_VHDR_0['sCompression'].'"');
 							break;
 					}
 				}
@@ -1439,7 +1438,7 @@ class getid3_riff extends getid3_handler {
 	public function ParseRIFF($startoffset, $maxoffset) {
 		$info = &$this->getid3->info;
 
-		$RIFFchunk = false;
+		$RIFFchunk = [];
 		$FoundAllChunksWeNeed = false;
 
 		try {
@@ -1468,8 +1467,11 @@ class getid3_riff extends getid3_handler {
 					case 'LIST':
 						$listname = $this->fread(4);
 						if (preg_match('#^(movi|rec )$#i', $listname)) {
-							$RIFFchunk[$listname]['offset'] = $this->ftell() - 4;
-							$RIFFchunk[$listname]['size']   = $chunksize;
+							
+							$RIFFchunk[$listname] = [
+								'offset' => $this->ftell() - 4,
+								'size' => $chunksize
+							];
 
 							if (!$FoundAllChunksWeNeed) {
 								$WhereWeWere      = $this->ftell();
@@ -1531,7 +1533,7 @@ class getid3_riff extends getid3_handler {
 						} else {
 
 							if (empty($RIFFchunk[$listname])) {
-								$RIFFchunk[$listname] = array();
+								$RIFFchunk[$listname] = [];
 							}
 							$LISTchunkParent    = $listname;
 							$LISTchunkMaxOffset = $this->ftell() - 4 + $chunksize;
@@ -1550,9 +1552,13 @@ class getid3_riff extends getid3_handler {
 						$thisindex = 0;
 						if (!empty($RIFFchunk[$chunkname]) && is_array($RIFFchunk[$chunkname])) {
 							$thisindex = count($RIFFchunk[$chunkname]);
+						} else {
+							$RIFFchunk[$chunkname] = [];
 						}
-						$RIFFchunk[$chunkname][$thisindex]['offset'] = $this->ftell() - 8;
-						$RIFFchunk[$chunkname][$thisindex]['size']   = $chunksize;
+						$RIFFchunk[$chunkname][$thisindex] = [
+							'offset' => $this->ftell() - 8,
+							'size' => $chunksize
+						];
 						switch ($chunkname) {
 							case 'data':
 								$info['avdataoffset'] = $this->ftell();
@@ -1642,10 +1648,10 @@ class getid3_riff extends getid3_handler {
 									$info['wavpack']['size']   = getid3_lib::LittleEndian2Int(substr($testData, 4, 4));
 									$this->parseWavPackHeader(substr($testData, 8, 28));
 
-								} else {
+								} //else {
 									// This is some other kind of data (quite possibly just PCM)
 									// do nothing special, just skip it
-								}
+								//}
 								$nextoffset = $info['avdataend'];
 								$this->fseek($nextoffset);
 								break;
@@ -1692,10 +1698,10 @@ class getid3_riff extends getid3_handler {
 									$RIFFchunk[$LISTchunkParent][$chunkname][$thisindex]['size']   = $RIFFchunk[$chunkname][$thisindex]['size'];
 									unset($RIFFchunk[$chunkname][$thisindex]['offset']);
 									unset($RIFFchunk[$chunkname][$thisindex]['size']);
-									if (!empty($RIFFchunk[$chunkname][$thisindex]) && empty($RIFFchunk[$chunkname][$thisindex])) {
+									if (isset($RIFFchunk[$chunkname][$thisindex]) && empty($RIFFchunk[$chunkname][$thisindex])) {
 										unset($RIFFchunk[$chunkname][$thisindex]);
 									}
-									if (!empty($RIFFchunk[$chunkname]) && empty($RIFFchunk[$chunkname])) {
+									if (isset($RIFFchunk[$chunkname]) && empty($RIFFchunk[$chunkname])) {
 										unset($RIFFchunk[$chunkname]);
 									}
 									$RIFFchunk[$LISTchunkParent][$chunkname][$thisindex]['data'] = $this->fread($chunksize);
@@ -1717,6 +1723,10 @@ class getid3_riff extends getid3_handler {
 			} else {
 				throw $e;
 			}
+		}
+		
+		if (empty($RIFFchunk)) {
+			return false;
 		}
 
 		return $RIFFchunk;
