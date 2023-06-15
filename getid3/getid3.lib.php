@@ -533,15 +533,16 @@ class getid3_lib
 	}
 
 	public static function XML2array($XMLstring) {
-		if (function_exists('simplexml_load_string') && function_exists('libxml_disable_entity_loader')) {
+		if (function_exists('simplexml_load_string') && function_exists('libxml_get_external_entity_loader')) {
 			// http://websec.io/2012/08/27/Preventing-XEE-in-PHP.html
 			// https://core.trac.wordpress.org/changeset/29378
-			$loader = libxml_disable_entity_loader(true);
+			$loader = libxml_get_external_entity_loader();
+			libxml_set_external_entity_loader(function() { return null; });
 			libxml_use_internal_errors(true); // don't log errors. returning false is enough
 			$XMLobject = simplexml_load_string($XMLstring, 'SimpleXMLElement', LIBXML_NOENT);
 			$return = self::SimpleXMLelement2array($XMLobject);
 			libxml_clear_errors(); // clear any stored errors so they don't eat up memory
-			libxml_disable_entity_loader($loader);
+			libxml_set_external_entity_loader($loader);
 			return $return;
 		}
 		return false;
