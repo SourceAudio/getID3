@@ -1055,7 +1055,7 @@ class getid3_id3v2 extends getid3_handler
 				if ($frame_terminatorpos === false) {
 					$frame_remainingdata = '';
 				} else {
-					if (($frame_terminatorpos !== false) && (ord(substr($frame_remainingdata, $frame_terminatorpos + strlen($frame_textencoding_terminator), 1)) === 0)) {
+					if (ord(substr($frame_remainingdata, $frame_terminatorpos + strlen($frame_textencoding_terminator), 1)) === 0) {
 						$frame_terminatorpos++; // strpos() fooled because 2nd byte of Unicode chars are often 0x00
 					}
 					$parsedFrame['lyrics'][$timestampindex]['data'] = substr($frame_remainingdata, $frame_offset, $frame_terminatorpos - $frame_offset);
