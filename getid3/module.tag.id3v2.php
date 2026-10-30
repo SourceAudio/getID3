@@ -425,19 +425,20 @@ class getid3_id3v2 extends getid3_handler
 
 		if (isset($thisfile_id3v2_flags['isfooter']) && $thisfile_id3v2_flags['isfooter']) {
 			$footer = $this->fread(10);
-			if (substr($footer, 0, 3) == '3DI') {
+			// a header can claim a footer that isn't there. skip it quietly and keep what was parsed
+			if (strlen($footer) === 10 && substr($footer, 0, 3) == '3DI') {
 				$thisfile_id3v2['footer'] = true;
 				$thisfile_id3v2['majorversion_footer'] = ord($footer[3]);
 				$thisfile_id3v2['minorversion_footer'] = ord($footer[4]);
-			}
-			if ($thisfile_id3v2['majorversion_footer'] <= 4) {
-				$id3_flags = ord(substr($footer[5]));
-				$thisfile_id3v2_flags['unsynch_footer']  = (bool) ($id3_flags & 0x80);
-				$thisfile_id3v2_flags['extfoot_footer']  = (bool) ($id3_flags & 0x40);
-				$thisfile_id3v2_flags['experim_footer']  = (bool) ($id3_flags & 0x20);
-				$thisfile_id3v2_flags['isfooter_footer'] = (bool) ($id3_flags & 0x10);
+				if ($thisfile_id3v2['majorversion_footer'] <= 4) {
+					$id3_flags = ord($footer[5]);
+					$thisfile_id3v2_flags['unsynch_footer']  = (bool) ($id3_flags & 0x80);
+					$thisfile_id3v2_flags['extfoot_footer']  = (bool) ($id3_flags & 0x40);
+					$thisfile_id3v2_flags['experim_footer']  = (bool) ($id3_flags & 0x20);
+					$thisfile_id3v2_flags['isfooter_footer'] = (bool) ($id3_flags & 0x10);
 
-				$thisfile_id3v2['footerlength'] = getid3_lib::BigEndian2Int(substr($footer, 6, 4), 1);
+					$thisfile_id3v2['footerlength'] = getid3_lib::BigEndian2Int(substr($footer, 6, 4), 1);
+				}
 			}
 		} // end footer
 
