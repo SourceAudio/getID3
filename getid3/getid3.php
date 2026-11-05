@@ -200,8 +200,8 @@ class getID3
 					if (strpos($value, ' ') !== false) {
 						if (!empty($path_so_far)) {
 							$commandline = 'dir /x '.escapeshellarg(implode(DIRECTORY_SEPARATOR, $path_so_far));
-							$dir_listing = `$commandline`;
-							$lines = explode("\n", $dir_listing);
+							$dir_listing = shell_exec($commandline);
+							$lines = explode("\n", (string) $dir_listing);
 							foreach ($lines as $line) {
 								$line = trim($line);
 								if (preg_match('#^([0-9/]{10}) +([0-9:]{4,5}( [AP]M)?) +(<DIR>|[0-9,]+) +([^ ]{0,11}) +(.+)$#', $line, $matches)) {
@@ -1362,7 +1362,7 @@ class getID3
 					if (file_exists(GETID3_HELPERAPPSDIR.'vorbiscomment.exe')) {
 
 						$commandline = '"'.GETID3_HELPERAPPSDIR.'vorbiscomment.exe" -w -c "'.$empty.'" "'.$file.'" "'.$temp.'"';
-						$VorbisCommentError = `$commandline`;
+						$VorbisCommentError = shell_exec($commandline);
 
 					} else {
 
@@ -1374,7 +1374,7 @@ class getID3
 
 					$commandline = 'vorbiscomment -w -c "'.$empty.'" "'.$file.'" "'.$temp.'" 2>&1';
 					$commandline = 'vorbiscomment -w -c '.escapeshellarg($empty).' '.escapeshellarg($file).' '.escapeshellarg($temp).' 2>&1';
-					$VorbisCommentError = `$commandline`;
+					$VorbisCommentError = shell_exec($commandline);
 
 				}
 
@@ -1565,7 +1565,7 @@ class getID3
 	public function CalculateReplayGain() {
 		if (isset($this->info['replay_gain'])) {
 			if (!isset($this->info['replay_gain']['reference_volume'])) {
-				$this->info['replay_gain']['reference_volume'] = (double) 89.0;
+				$this->info['replay_gain']['reference_volume'] = (float) 89.0;
 			}
 			if (isset($this->info['replay_gain']['track']['adjustment'])) {
 				$this->info['replay_gain']['track']['volume'] = $this->info['replay_gain']['reference_volume'] - $this->info['replay_gain']['track']['adjustment'];
@@ -1681,6 +1681,10 @@ abstract class getid3_handler {
 	}
 
 	protected function fread($bytes) {
+		if (!($bytes > 0)) {
+			// fread() throws a ValueError for a length < 1 (e.g. a size read from a truncated or corrupt file)
+			return '';
+		}
 		if ($this->data_string_flag) {
 			$this->data_string_position += $bytes;
 			return substr($this->data_string, $this->data_string_position - $bytes, $bytes);

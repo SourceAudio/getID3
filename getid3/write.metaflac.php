@@ -66,7 +66,7 @@ class getid3_write_metaflac
 				$timestampbeforewriting = filemtime($this->filename);
 
 				$commandline = GETID3_HELPERAPPSDIR.'metaflac.exe --no-utf8-convert --remove-all-tags --import-tags-from='.escapeshellarg($tempcommentsfilename).' '.escapeshellarg($this->filename).' 2>&1';
-				$metaflacError = `$commandline`;
+				$metaflacError = shell_exec($commandline);
 
 				if (empty($metaflacError)) {
 					clearstatcache();
@@ -82,7 +82,7 @@ class getid3_write_metaflac
 
 			// It's simpler on *nix
 			$commandline = 'metaflac --no-utf8-convert --remove-all-tags --import-tags-from='.escapeshellarg($tempcommentsfilename).' '.escapeshellarg($this->filename).' 2>&1';
-			$metaflacError = `$commandline`;
+			$metaflacError = shell_exec($commandline);
 
 		}
 
@@ -117,7 +117,7 @@ class getid3_write_metaflac
 				$timestampbeforewriting = filemtime($this->filename);
 
 				$commandline = GETID3_HELPERAPPSDIR.'metaflac.exe --remove-all-tags "'.$this->filename.'" 2>&1';
-				$metaflacError = `$commandline`;
+				$metaflacError = shell_exec($commandline);
 
 				if (empty($metaflacError)) {
 					clearstatcache();
@@ -133,7 +133,7 @@ class getid3_write_metaflac
 
 			// It's simpler on *nix
 			$commandline = 'metaflac --remove-all-tags "'.$this->filename.'" 2>&1';
-			$metaflacError = `$commandline`;
+			$metaflacError = shell_exec($commandline);
 
 		}
 

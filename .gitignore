@@ -169,3 +169,8 @@ pip-log.txt
 .DS_Store
 demos/php_error.log
 /.idea/
+
+# Composer / PHPUnit (dev only)
+/vendor/
+/composer.lock
+/.phpunit.cache/

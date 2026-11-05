@@ -1602,7 +1602,10 @@ if (!empty($atom_structure['sample_description_table'][$i]['width']) && !empty($
 				return $atom_structure;
 			}
 
-			$atom_structure[$subatomcounter] = $this->QuicktimeParseAtom($subatomname, $subatomsize, $subatomdata, $baseoffset + $subatomoffset, $atomHierarchy, $ParseAllPossibleAtoms);
+			if ($atom_structure === false) {
+				$atom_structure = array(); // automatic conversion of false to array is deprecated
+			}
+			$atom_structure[$subatomcounter] =$this->QuicktimeParseAtom($subatomname, $subatomsize, $subatomdata, $baseoffset + $subatomoffset, $atomHierarchy, $ParseAllPossibleAtoms);
 
 			$subatomoffset += $subatomsize;
 			$subatomcounter++;
@@ -1616,7 +1619,7 @@ if (!empty($atom_structure['sample_description_table'][$i]['width']) && !empty($
 		$num_bytes = 0;
 		$length    = 0;
 		do {
-			$b = ord(substr($data, $offset++, 1));
+			$b = getid3_lib::ord(substr($data, $offset++, 1));
 			$length = ($length << 7) | ($b & 0x7F);
 		} while (($b & 0x80) && ($num_bytes++ < 4));
 		return $length;
@@ -2171,7 +2174,7 @@ if (!empty($atom_structure['sample_description_table'][$i]['width']) && !empty($
 						if ($denomninator == 0) {
 							$data[$i] = false;
 						} else {
-							$data[$i] = (double) $numerator / $denomninator;
+							$data[$i] = (float) $numerator / $denomninator;
 						}
 					}
 					$offset += (8 * $data_size);
@@ -2216,16 +2219,16 @@ echo 'QuicktimeParseNikonNCTG()::unknown $data_size_type: '.$data_size_type.'<br
 						'PictureControlName'        =>                     rtrim(substr($data,  4, 20), "\x00"),
 						'PictureControlBase'        =>                     rtrim(substr($data, 24, 20), "\x00"),
 						//'?'                       =>                           substr($data, 44,  4),
-						'PictureControlAdjust'      => $PictureControlAdjust[ord(substr($data, 48,  1))],
-						'PictureControlQuickAdjust' =>                       ord(substr($data, 49,  1)),
-						'Sharpness'                 =>                       ord(substr($data, 50,  1)),
-						'Contrast'                  =>                       ord(substr($data, 51,  1)),
-						'Brightness'                =>                       ord(substr($data, 52,  1)),
-						'Saturation'                =>                       ord(substr($data, 53,  1)),
-						'HueAdjustment'             =>                       ord(substr($data, 54,  1)),
-						'FilterEffect'              =>         $FilterEffect[ord(substr($data, 55,  1))],
-						'ToningEffect'              =>         $ToningEffect[ord(substr($data, 56,  1))],
-						'ToningSaturation'          =>                       ord(substr($data, 57,  1)),
+						'PictureControlAdjust'      => $PictureControlAdjust[getid3_lib::ord(substr($data, 48,  1))],
+						'PictureControlQuickAdjust' =>                       getid3_lib::ord(substr($data, 49,  1)),
+						'Sharpness'                 =>                       getid3_lib::ord(substr($data, 50,  1)),
+						'Contrast'                  =>                       getid3_lib::ord(substr($data, 51,  1)),
+						'Brightness'                =>                       getid3_lib::ord(substr($data, 52,  1)),
+						'Saturation'                =>                       getid3_lib::ord(substr($data, 53,  1)),
+						'HueAdjustment'             =>                       getid3_lib::ord(substr($data, 54,  1)),
+						'FilterEffect'              =>         $FilterEffect[getid3_lib::ord(substr($data, 55,  1))],
+						'ToningEffect'              =>         $ToningEffect[getid3_lib::ord(substr($data, 56,  1))],
+						'ToningSaturation'          =>                       getid3_lib::ord(substr($data, 57,  1)),
 					);
 					break;
 				case 0x02000024: // WorldTime

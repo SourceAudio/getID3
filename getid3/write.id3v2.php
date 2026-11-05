@@ -1032,7 +1032,7 @@ class getid3_write_id3v2
 						$this->errors[] = 'Invalid Group Symbol in '.$frame_name.' ('.$source_data_array['methodsymbol'].') (range = 0 to 255)';
 					} else {
 						$framedata .= str_replace("\x00", '', $source_data_array['ownerid'])."\x00";
-						$framedata .= ord($source_data_array['methodsymbol']);
+						$framedata .= chr($source_data_array['methodsymbol']);
 						$framedata .= $source_data_array['data'];
 					}
 					break;
@@ -1046,7 +1046,7 @@ class getid3_write_id3v2
 						$this->errors[] = 'Invalid Group Symbol in '.$frame_name.' ('.$source_data_array['groupsymbol'].') (range = 0 to 255)';
 					} else {
 						$framedata .= str_replace("\x00", '', $source_data_array['ownerid'])."\x00";
-						$framedata .= ord($source_data_array['groupsymbol']);
+						$framedata .= chr($source_data_array['groupsymbol']);
 						$framedata .= $source_data_array['data'];
 					}
 					break;
@@ -1066,7 +1066,7 @@ class getid3_write_id3v2
 					if (!$this->IsWithinBitRange($source_data_array['groupsymbol'], 8, false)) {
 						$this->errors[] = 'Invalid Group Symbol in '.$frame_name.' ('.$source_data_array['groupsymbol'].') (range = 0 to 255)';
 					} else {
-						$framedata .= ord($source_data_array['groupsymbol']);
+						$framedata .= chr($source_data_array['groupsymbol']);
 						$framedata .= $source_data_array['data'];
 					}
 					break;

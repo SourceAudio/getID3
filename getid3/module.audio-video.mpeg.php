@@ -64,7 +64,7 @@ class getid3_mpeg extends getid3_handler {
 			} else {
 				$MPEGstreamDataOffset = $StartCodeOffset;
 				$prevStartCodeValue = $StartCodeValue;
-				$StartCodeValue = ord(substr($MPEGstreamData, $StartCodeOffset + 3, 1));
+				$StartCodeValue = getid3_lib::ord(substr($MPEGstreamData, $StartCodeOffset + 3, 1));
 //echo 'Found "'.strtoupper(dechex($StartCodeValue)).'" at offset '.($MPEGstreamBaseOffset + $StartCodeOffset).' ($MPEGstreamDataOffset = '.$MPEGstreamDataOffset.')<br>';
 			}
 			$MPEGstreamDataOffset += 4;

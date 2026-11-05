@@ -122,8 +122,8 @@ class getid3_gzip extends getid3_handler {
 					if ($idx >= $xlen) {
 						break;
 					}
-					$si1 = ord(substr($buff, $fpointer + $idx++, 1));
-					$si2 = ord(substr($buff, $fpointer + $idx++, 1));
+					$si1 = getid3_lib::ord(substr($buff, $fpointer + $idx++, 1));
+					$si2 = getid3_lib::ord(substr($buff, $fpointer + $idx++, 1));
 					if (($si1 == 0x41) && ($si2 == 0x70)) {
 						$w_xsublen = substr($buff, $fpointer + $idx, 2);
 						$xsublen = getid3_lib::LittleEndian2Int($w_xsublen);

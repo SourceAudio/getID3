@@ -36,6 +36,41 @@ class getid3_lib
 		return $returnstring;
 	}
 
+	/**
+	 * Returns the value (0-255) of the first byte of $string, or 0 if $string is empty.
+	 *
+	 * This is what ord() returned before PHP 8.5, which deprecates passing ord() a string that
+	 * is not exactly one byte long. Use it wherever the argument may be empty (truncated data)
+	 * or longer than one byte.
+	 *
+	 * @param string $string
+	 *
+	 * @return int
+	 */
+	public static function ord($string) {
+		$string = (string) $string;
+		return (isset($string[0]) ? ord($string[0]) : 0);
+	}
+
+	/**
+	 * strpos() that returns false, as PHP 7 did, when $offset is outside $haystack instead of
+	 * throwing a ValueError (PHP 8+). Parsers hit this on truncated or malformed data.
+	 *
+	 * @param string $haystack
+	 * @param string $needle
+	 * @param int    $offset
+	 *
+	 * @return int|false
+	 */
+	public static function strpos_safe($haystack, $needle, $offset = 0) {
+		$haystack = (string) $haystack;
+		$length = strlen($haystack);
+		if (($offset > $length) || ($offset < -$length)) {
+			return false;
+		}
+		return strpos($haystack, $needle, $offset);
+	}
+
 	public static function trunc($floatnumber) {
 		// truncates a floating-point number at the decimal point
 		// returns int (if possible, otherwise float)
@@ -78,19 +113,10 @@ class getid3_lib
 	}
 
 	public static function intValueSupported($num) {
-		// check if integers are 64-bit
-		static $hasINT64 = null;
-		if ($hasINT64 === null) { // 10x faster than is_null()
-			$hasINT64 = is_int(pow(2, 31)); // 32-bit int are limited to (2^31)-1
-			if (!$hasINT64 && !defined('PHP_INT_MIN')) {
-				define('PHP_INT_MIN', ~PHP_INT_MAX);
-			}
-		}
-		// if integers are 64-bit - no other check required
-		if ($hasINT64 || (($num <= PHP_INT_MAX) && ($num >= PHP_INT_MIN))) {
-			return true;
-		}
-		return false;
+		// true if $num can be cast to int without overflowing.
+		// Must be strict comparisons: (float) PHP_INT_MAX rounds up to 2^63, which is not representable
+		// as an int (PHP 8.5 warns "The float ... is not representable as an int, cast occurred").
+		return (($num < PHP_INT_MAX) && ($num > PHP_INT_MIN));
 	}
 
 	public static function DecimalizeFraction($fraction) {
@@ -618,7 +644,7 @@ class getid3_lib
 				//throw new Exception('PHP running in Safe Mode - backtick operator not available, using slower non-system-call '.$algorithm.' algorithm');
 				break;
 			}
-			return substr(`$commandline`, 0, $hash_length);
+			return substr((string) shell_exec($commandline), 0, $hash_length);
 		}
 
 		if (empty($tempdir)) {
@@ -686,13 +712,13 @@ class getid3_lib
 		} elseif ($charval < 65536) {
 			// 1110bbbb 10bbbbbb 10bbbbbb
 			$newcharstring  = chr(($charval >>  12) | 0xE0);
-			$newcharstring .= chr(($charval >>   6) | 0xC0);
+			$newcharstring .= chr((($charval >>  6) & 0x3F) | 0x80);
 			$newcharstring .= chr(($charval & 0x3F) | 0x80);
 		} else {
 			// 11110bbb 10bbbbbb 10bbbbbb 10bbbbbb
-			$newcharstring  = chr(($charval >>  18) | 0xF0);
-			$newcharstring .= chr(($charval >>  12) | 0xC0);
-			$newcharstring .= chr(($charval >>   6) | 0xC0);
+			$newcharstring  = chr((($charval >> 18) & 0x07) | 0xF0);
+			$newcharstring .= chr((($charval >> 12) & 0x3F) | 0x80);
+			$newcharstring .= chr((($charval >>  6) & 0x3F) | 0x80);
 			$newcharstring .= chr(($charval & 0x3F) | 0x80);
 		}
 		return $newcharstring;
@@ -700,10 +726,10 @@ class getid3_lib
 
 	// ISO-8859-1 => UTF-8
 	public static function iconv_fallback_iso88591_utf8($string, $bom=false) {
-		if (function_exists('utf8_encode')) {
-			return utf8_encode($string);
+		// utf8_encode() is deprecated as of PHP 8.2
+		if (function_exists('mb_convert_encoding')) {
+			return ($bom ? "\xEF\xBB\xBF" : '').mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
 		}
-		// utf8_encode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		if ($bom) {
 			$newcharstring .= "\xEF\xBB\xBF";
@@ -744,43 +770,59 @@ class getid3_lib
 		return self::iconv_fallback_iso88591_utf16le($string, true);
 	}
 
+	/**
+	 * Decodes the UTF-8 character at $offset in $string and advances $offset past it.
+	 * Returns the code point, or false (advancing one byte) for an invalid or truncated sequence.
+	 *
+	 * @param string $string
+	 * @param int    $offset
+	 * @param int    $stringlength
+	 *
+	 * @return int|false
+	 */
+	private static function utf8_next_codepoint($string, &$offset, $stringlength) {
+		$byte = ord($string[$offset]);
+		if ((($byte | 0x07) == 0xF7) && ($offset + 3 < $stringlength)) {
+			// 11110bbb 10bbbbbb 10bbbbbb 10bbbbbb
+			$charval = (($byte                         & 0x07) << 18) |
+			           ((ord($string[($offset + 1)]) & 0x3F) << 12) |
+			           ((ord($string[($offset + 2)]) & 0x3F) <<  6) |
+			            (ord($string[($offset + 3)]) & 0x3F);
+			$offset += 4;
+		} elseif ((($byte | 0x0F) == 0xEF) && ($offset + 2 < $stringlength)) {
+			// 1110bbbb 10bbbbbb 10bbbbbb
+			$charval = (($byte                         & 0x0F) << 12) |
+			           ((ord($string[($offset + 1)]) & 0x3F) <<  6) |
+			            (ord($string[($offset + 2)]) & 0x3F);
+			$offset += 3;
+		} elseif ((($byte | 0x1F) == 0xDF) && ($offset + 1 < $stringlength)) {
+			// 110bbbbb 10bbbbbb
+			$charval = (($byte                         & 0x1F) <<  6) |
+			            (ord($string[($offset + 1)]) & 0x3F);
+			$offset += 2;
+		} elseif (($byte | 0x7F) == 0x7F) {
+			// 0bbbbbbb
+			$charval = $byte;
+			$offset += 1;
+		} else {
+			// invalid or truncated sequence
+			$charval = false;
+			$offset += 1;
+		}
+		return $charval;
+	}
+
 	// UTF-8 => ISO-8859-1
 	public static function iconv_fallback_utf8_iso88591($string) {
-		if (function_exists('utf8_decode')) {
-			return utf8_decode($string);
+		// utf8_decode() is deprecated as of PHP 8.2
+		if (function_exists('mb_convert_encoding')) {
+			return mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
 		}
-		// utf8_decode() unavailable, use getID3()'s iconv_fallback() conversions (possibly PHP is compiled without XML support)
 		$newcharstring = '';
 		$offset = 0;
 		$stringlength = strlen($string);
 		while ($offset < $stringlength) {
-			if ((ord($string[$offset]) | 0x07) == 0xF7) {
-				// 11110bbb 10bbbbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x07) << 18) &
-						   ((ord($string[($offset + 1)]) & 0x3F) << 12) &
-						   ((ord($string[($offset + 2)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 3)]) & 0x3F);
-				$offset += 4;
-			} elseif ((ord($string[$offset]) | 0x0F) == 0xEF) {
-				// 1110bbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x0F) << 12) &
-						   ((ord($string[($offset + 1)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 2)]) & 0x3F);
-				$offset += 3;
-			} elseif ((ord($string[$offset]) | 0x1F) == 0xDF) {
-				// 110bbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x1F) <<  6) &
-							(ord($string[($offset + 1)]) & 0x3F);
-				$offset += 2;
-			} elseif ((ord($string[$offset]) | 0x7F) == 0x7F) {
-				// 0bbbbbbb
-				$charval = ord($string[$offset]);
-				$offset += 1;
-			} else {
-				// error? throw some kind of warning here?
-				$charval = false;
-				$offset += 1;
-			}
+			$charval = self::utf8_next_codepoint($string, $offset, $stringlength);
 			if ($charval !== false) {
 				$newcharstring .= (($charval < 256) ? chr($charval) : '?');
 			}
@@ -797,33 +839,7 @@ class getid3_lib
 		$offset = 0;
 		$stringlength = strlen($string);
 		while ($offset < $stringlength) {
-			if ((ord($string[$offset]) | 0x07) == 0xF7) {
-				// 11110bbb 10bbbbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x07) << 18) &
-						   ((ord($string[($offset + 1)]) & 0x3F) << 12) &
-						   ((ord($string[($offset + 2)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 3)]) & 0x3F);
-				$offset += 4;
-			} elseif ((ord($string[$offset]) | 0x0F) == 0xEF) {
-				// 1110bbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x0F) << 12) &
-						   ((ord($string[($offset + 1)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 2)]) & 0x3F);
-				$offset += 3;
-			} elseif ((ord($string[$offset]) | 0x1F) == 0xDF) {
-				// 110bbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x1F) <<  6) &
-							(ord($string[($offset + 1)]) & 0x3F);
-				$offset += 2;
-			} elseif ((ord($string[$offset]) | 0x7F) == 0x7F) {
-				// 0bbbbbbb
-				$charval = ord($string[$offset]);
-				$offset += 1;
-			} else {
-				// error? throw some kind of warning here?
-				$charval = false;
-				$offset += 1;
-			}
+			$charval = self::utf8_next_codepoint($string, $offset, $stringlength);
 			if ($charval !== false) {
 				$newcharstring .= (($charval < 65536) ? self::BigEndian2String($charval, 2) : "\x00".'?');
 			}
@@ -840,33 +856,7 @@ class getid3_lib
 		$offset = 0;
 		$stringlength = strlen($string);
 		while ($offset < $stringlength) {
-			if ((ord($string[$offset]) | 0x07) == 0xF7) {
-				// 11110bbb 10bbbbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x07) << 18) &
-						   ((ord($string[($offset + 1)]) & 0x3F) << 12) &
-						   ((ord($string[($offset + 2)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 3)]) & 0x3F);
-				$offset += 4;
-			} elseif ((ord($string[$offset]) | 0x0F) == 0xEF) {
-				// 1110bbbb 10bbbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x0F) << 12) &
-						   ((ord($string[($offset + 1)]) & 0x3F) <<  6) &
-							(ord($string[($offset + 2)]) & 0x3F);
-				$offset += 3;
-			} elseif ((ord($string[$offset]) | 0x1F) == 0xDF) {
-				// 110bbbbb 10bbbbbb
-				$charval = ((ord($string[($offset + 0)]) & 0x1F) <<  6) &
-							(ord($string[($offset + 1)]) & 0x3F);
-				$offset += 2;
-			} elseif ((ord($string[$offset]) | 0x7F) == 0x7F) {
-				// 0bbbbbbb
-				$charval = ord($string[$offset]);
-				$offset += 1;
-			} else {
-				// error? maybe throw some warning here?
-				$charval = false;
-				$offset += 1;
-			}
+			$charval = self::utf8_next_codepoint($string, $offset, $stringlength);
 			if ($charval !== false) {
 				$newcharstring .= (($charval < 65536) ? self::LittleEndian2String($charval, 2) : '?'."\x00");
 			}
@@ -1203,6 +1193,7 @@ class getid3_lib
 				fclose($tmp);
 				$GetDataImageSize = @getimagesize($tempfilename, $imageinfo);
 				if (($GetDataImageSize === false) || !isset($GetDataImageSize[0]) || !isset($GetDataImageSize[1])) {
+					unlink($tempfilename);
 					return false;
 				}
 				$GetDataImageSize['height'] = $GetDataImageSize[0];
@@ -1413,7 +1404,7 @@ class getid3_lib
 			$commandline = 'ls -l '.escapeshellarg($path).' | awk \'{print $5}\'';
 		}
 		if (isset($commandline)) {
-			$output = trim(`$commandline`);
+			$output = trim((string) shell_exec($commandline));
 			if (ctype_digit($output)) {
 				$filesize = (float) $output;
 			}

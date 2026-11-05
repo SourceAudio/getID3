@@ -41,6 +41,12 @@ class getid3_ogg extends getid3_handler
 		$this->fseek($info['avdataoffset']);
 
 		$oggpageinfo = $this->ParseOggPageHeader();
+		if ($oggpageinfo === false) {
+			$this->error('Could not parse first Ogg page header (file may be truncated)');
+			unset($info['fileformat']);
+			unset($info['ogg']);
+			return false;
+		}
 		$info['ogg']['pageheader'][$oggpageinfo['page_seqno']] = $oggpageinfo;
 
 		if ($this->ftell() >= $this->getid3->fread_buffer_size()) {
@@ -270,6 +276,10 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 
 		// Page 2 - Comment Header
 		$oggpageinfo = $this->ParseOggPageHeader();
+		if ($oggpageinfo === false) {
+			$this->error('Could not parse Ogg comment header page (file may be truncated)');
+			return false;
+		}
 		$info['ogg']['pageheader'][$oggpageinfo['page_seqno']] = $oggpageinfo;
 
 		switch ($info['audio']['dataformat']) {
@@ -540,6 +550,10 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 			case 'vorbis':
 			case 'speex':
 			case 'opus':
+				if (!isset($info['ogg']['pageheader'][$VorbisCommentPage]['page_start_offset'])) {
+					$this->warning('Ogg comment header page not found (file may be truncated)');
+					return false;
+				}
 				$CommentStartOffset = $info['ogg']['pageheader'][$VorbisCommentPage]['page_start_offset'];  // Second Ogg page, after header block
 				$this->fseek($CommentStartOffset);
 				$commentdataoffset = 27 + $info['ogg']['pageheader'][$VorbisCommentPage]['page_segments'];
@@ -626,6 +640,10 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 				$VorbisCommentPage++;
 
 				$oggpageinfo = $this->ParseOggPageHeader();
+				if ($oggpageinfo === false) {
+					$this->warning('Could not parse Ogg page header for comment #'.$i.' (file may be truncated) - aborting reading comments');
+					break 2;
+				}
 				$info['ogg']['pageheader'][$oggpageinfo['page_seqno']] = $oggpageinfo;
 
 				// First, save what we haven't read yet
@@ -727,29 +745,29 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 				switch ($index) {
 					case 'rg_audiophile':
 					case 'replaygain_album_gain':
-						$info['replay_gain']['album']['adjustment'] = (double) $commentvalue[0];
+						$info['replay_gain']['album']['adjustment'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'rg_radio':
 					case 'replaygain_track_gain':
-						$info['replay_gain']['track']['adjustment'] = (double) $commentvalue[0];
+						$info['replay_gain']['track']['adjustment'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'replaygain_album_peak':
-						$info['replay_gain']['album']['peak'] = (double) $commentvalue[0];
+						$info['replay_gain']['album']['peak'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'rg_peak':
 					case 'replaygain_track_peak':
-						$info['replay_gain']['track']['peak'] = (double) $commentvalue[0];
+						$info['replay_gain']['track']['peak'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
 					case 'replaygain_reference_loudness':
-						$info['replay_gain']['reference_volume'] = (double) $commentvalue[0];
+						$info['replay_gain']['reference_volume'] = (float) $commentvalue[0];
 						unset($info['ogg']['comments'][$index]);
 						break;
 
@@ -777,6 +795,10 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 
 
 	public static function OggPageSegmentLength($OggInfoArray, $SegmentNumber=1) {
+		$segmentlength = 0;
+		if (empty($OggInfoArray['segment_table'])) {
+			return $segmentlength;
+		}
 		for ($i = 0; $i < $SegmentNumber; $i++) {
 			$segmentlength = 0;
 			foreach ($OggInfoArray['segment_table'] as $key => $value) {

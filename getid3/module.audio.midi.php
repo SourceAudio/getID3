@@ -103,7 +103,7 @@ class getid3_midi extends getid3_handler
 					}
 					$deltatime = 0;
 					for ($i = 0; $i < 4; $i++) {
-						$deltatimebyte = ord(substr($trackdata, $eventsoffset++, 1));
+						$deltatimebyte = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 						$deltatime = ($deltatime << 7) + ($deltatimebyte & 0x7F);
 						if ($deltatimebyte & 0x80) {
 							// another byte follows
@@ -114,7 +114,7 @@ class getid3_midi extends getid3_handler
 					$CumulativeDeltaTime += $deltatime;
 					$TicksAtCurrentBPM   += $deltatime;
 					$MIDIevents[$tracknumber][$eventid]['deltatime'] = $deltatime;
-					$MIDI_event_channel                                  = ord(substr($trackdata, $eventsoffset++, 1));
+					$MIDI_event_channel                                  = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 					if ($MIDI_event_channel & 0x80) {
 						// OK, normal event - MIDI command has MSB set
 						$LastIssuedMIDIcommand = $MIDI_event_channel >> 4;
@@ -127,27 +127,27 @@ class getid3_midi extends getid3_handler
 					$MIDIevents[$tracknumber][$eventid]['channel']   = $LastIssuedMIDIchannel;
 					if ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x08) { // Note off (key is released)
 
-						$notenumber = ord(substr($trackdata, $eventsoffset++, 1));
-						$velocity   = ord(substr($trackdata, $eventsoffset++, 1));
+						$notenumber = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$velocity   = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x09) { // Note on (key is pressed)
 
-						$notenumber = ord(substr($trackdata, $eventsoffset++, 1));
-						$velocity   = ord(substr($trackdata, $eventsoffset++, 1));
+						$notenumber = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$velocity   = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0A) { // Key after-touch
 
-						$notenumber = ord(substr($trackdata, $eventsoffset++, 1));
-						$velocity   = ord(substr($trackdata, $eventsoffset++, 1));
+						$notenumber = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$velocity   = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0B) { // Control Change
 
-						$controllernum = ord(substr($trackdata, $eventsoffset++, 1));
-						$newvalue      = ord(substr($trackdata, $eventsoffset++, 1));
+						$controllernum = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$newvalue      = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0C) { // Program (patch) change
 
-						$newprogramnum = ord(substr($trackdata, $eventsoffset++, 1));
+						$newprogramnum = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 						$thisfile_midi_raw['track'][$tracknumber]['instrumentid'] = $newprogramnum;
 						if ($tracknumber == 10) {
@@ -158,18 +158,18 @@ class getid3_midi extends getid3_handler
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0D) { // Channel after-touch
 
-						$channelnumber = ord(substr($trackdata, $eventsoffset++, 1));
+						$channelnumber = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 
 					} elseif ($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0E) { // Pitch wheel change (2000H is normal or no change)
 
-						$changeLSB = ord(substr($trackdata, $eventsoffset++, 1));
-						$changeMSB = ord(substr($trackdata, $eventsoffset++, 1));
+						$changeLSB = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$changeMSB = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 						$pitchwheelchange = (($changeMSB & 0x7F) << 7) & ($changeLSB & 0x7F);
 
 					} elseif (($MIDIevents[$tracknumber][$eventid]['eventid'] == 0x0F) && ($MIDIevents[$tracknumber][$eventid]['channel'] == 0x0F)) {
 
-						$METAeventCommand = ord(substr($trackdata, $eventsoffset++, 1));
-						$METAeventLength  = ord(substr($trackdata, $eventsoffset++, 1));
+						$METAeventCommand = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
+						$METAeventLength  = getid3_lib::ord(substr($trackdata, $eventsoffset++, 1));
 						$METAeventData    = substr($trackdata, $eventsoffset, $METAeventLength);
 						$eventsoffset += $METAeventLength;
 						switch ($METAeventCommand) {
