@@ -1984,7 +1984,7 @@ class getid3_riff extends getid3_handler {
 		$parsed['year']      = intval(trim(substr($DIVXTAG,  60,  4)));
 		$parsed['comment']   =        trim(substr($DIVXTAG,  64, 48));
 		$parsed['genre_id']  = intval(trim(substr($DIVXTAG, 112,  3)));
-		$parsed['rating_id'] =         ord(substr($DIVXTAG, 115,  1));
+		$parsed['rating_id'] =         getid3_lib::ord(substr($DIVXTAG, 115,  1));
 		//$parsed['padding'] =             substr($DIVXTAG, 116,  5);  // 5-byte null
 		//$parsed['magic']   =             substr($DIVXTAG, 121,  7);  // "DIVXTAG"
 

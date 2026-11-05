@@ -39,12 +39,12 @@ class getid3_id3v1 extends getid3_handler
 			$ParsedID3v1['album']   = $this->cutfield(substr($id3v1tag,  63, 30));
 			$ParsedID3v1['year']    = $this->cutfield(substr($id3v1tag,  93,  4));
 			$ParsedID3v1['comment'] =                 substr($id3v1tag,  97, 30);  // can't remove nulls yet, track detection depends on them
-			$ParsedID3v1['genreid'] =             ord(substr($id3v1tag, 127,  1));
+			$ParsedID3v1['genreid'] =             getid3_lib::ord(substr($id3v1tag, 127,  1));
 
 			// If second-last byte of comment field is null and last byte of comment field is non-null
 			// then this is ID3v1.1 and the comment field is 28 bytes long and the 30th byte is the track number
 			if (($id3v1tag[125] === "\x00") && ($id3v1tag[126] !== "\x00")) {
-				$ParsedID3v1['track']   = ord(substr($ParsedID3v1['comment'], 29,  1));
+				$ParsedID3v1['track']   = getid3_lib::ord(substr($ParsedID3v1['comment'], 29,  1));
 				$ParsedID3v1['comment'] =     substr($ParsedID3v1['comment'],  0, 28);
 			}
 			$ParsedID3v1['comment'] = $this->cutfield($ParsedID3v1['comment']);

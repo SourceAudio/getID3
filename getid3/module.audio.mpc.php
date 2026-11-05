@@ -474,7 +474,7 @@ class getid3_mpc extends getid3_handler
 			//  1xxx xxxx  1xxx xxxx  0xxx xxxx                     - value 0 to 2^21-1
 			//  1xxx xxxx  1xxx xxxx  1xxx xxxx  0xxx xxxx          - value 0 to 2^28-1
 			//  ...
-			$thisbyte = ord(substr($data, ($packetLength - 1), 1));
+			$thisbyte = getid3_lib::ord(substr($data, ($packetLength - 1), 1));
 			// look through bytes until find a byte with MSB==0
 			$packet_size = ($packet_size << 7);
 			$packet_size = ($packet_size | ($thisbyte & 0x7F));

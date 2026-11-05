@@ -62,11 +62,11 @@ class getid3_swf extends getid3_handler
 			}
 		}
 
-		$FrameSizeBitsPerValue = (ord(substr($SWFfileData, 8, 1)) & 0xF8) >> 3;
+		$FrameSizeBitsPerValue = (getid3_lib::ord(substr($SWFfileData, 8, 1)) & 0xF8) >> 3;
 		$FrameSizeDataLength   = ceil((5 + (4 * $FrameSizeBitsPerValue)) / 8);
-		$FrameSizeDataString   = str_pad(decbin(ord(substr($SWFfileData, 8, 1)) & 0x07), 3, '0', STR_PAD_LEFT);
+		$FrameSizeDataString   = str_pad(decbin(getid3_lib::ord(substr($SWFfileData, 8, 1)) & 0x07), 3, '0', STR_PAD_LEFT);
 		for ($i = 1; $i < $FrameSizeDataLength; $i++) {
-			$FrameSizeDataString .= str_pad(decbin(ord(substr($SWFfileData, 8 + $i, 1))), 8, '0', STR_PAD_LEFT);
+			$FrameSizeDataString .= str_pad(decbin(getid3_lib::ord(substr($SWFfileData, 8 + $i, 1))), 8, '0', STR_PAD_LEFT);
 		}
 		list($X1, $X2, $Y1, $Y2) = explode("\n", wordwrap($FrameSizeDataString, $FrameSizeBitsPerValue, "\n", 1));
 		$info['swf']['header']['frame_width']  = getid3_lib::Bin2Dec($X2);

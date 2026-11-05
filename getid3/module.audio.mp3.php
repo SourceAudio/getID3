@@ -677,7 +677,7 @@ class getid3_mp3 extends getid3_handler
 				if ($thisfile_mpeg_audio['xing_flags']['toc']) {
 					$LAMEtocData = substr($headerstring, $VBRidOffset + 16, 100);
 					for ($i = 0; $i < 100; $i++) {
-						$thisfile_mpeg_audio['toc'][$i] = ord($LAMEtocData[$i]);
+						$thisfile_mpeg_audio['toc'][$i] = getid3_lib::ord(substr($LAMEtocData, $i, 1)); // TOC may be truncated
 					}
 				}
 				if ($thisfile_mpeg_audio['xing_flags']['vbr_scale']) {
@@ -1701,7 +1701,7 @@ class getid3_mp3 extends getid3_handler
 	}
 
 	public static function MPEGaudioHeaderValid($rawarray, $echoerrors=false, $allowBitrate15=false) {
-		if (($rawarray['synch'] & 0x0FFE) != 0x0FFE) {
+		if (!is_array($rawarray) || (($rawarray['synch'] & 0x0FFE) != 0x0FFE)) { // MPEGaudioHeaderDecode() returns false for a short header
 			return false;
 		}
 

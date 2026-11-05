@@ -38,7 +38,7 @@ class getid3_dss extends getid3_handler
 		$info['audio']['dataformat']   =            substr($DSSheader, 1, 3); //         "dss" or         "ds2"
 		$info['audio']['bitrate_mode'] = 'cbr';
 
-		$info['dss']['version']            =                            ord(substr($DSSheader,    0,   1));
+		$info['dss']['version']            =                            getid3_lib::ord(substr($DSSheader,    0,   1));
 		$info['dss']['hardware']           =                           trim(substr($DSSheader,   12,  16)); // identification string for hardware used to create the file, e.g. "DPM 9600", "DS2400"
 		$info['dss']['unknown1']           =   getid3_lib::LittleEndian2Int(substr($DSSheader,   28,   4));
 		// 32-37 = "FE FF FE FF F7 FF" in all the sample files I've seen
@@ -47,9 +47,9 @@ class getid3_dss extends getid3_handler
 		$info['dss']['playtime_sec']       = intval((substr($DSSheader,  62, 2) * 3600) + (substr($DSSheader,  64, 2) * 60) + substr($DSSheader,  66, 2)); // approximate file playtime in HHMMSS
 		if ($info['dss']['version'] <= 3) {
 			$info['dss']['playtime_ms']        =   getid3_lib::LittleEndian2Int(substr($DSSheader,  512,   4)); // exact file playtime in milliseconds. Has also been observed at offset 530 in one sample file, with something else (unknown) at offset 512
-			$info['dss']['priority']           =                            ord(substr($DSSheader,  793,   1));
+			$info['dss']['priority']           =                            getid3_lib::ord(substr($DSSheader,  793,   1));
 			$info['dss']['comments']           =                           trim(substr($DSSheader,  798, 100));
-			$info['dss']['sample_rate_index']  =                            ord(substr($DSSheader, 1538,   1));  // this isn't certain, this may or may not be where the sample rate info is stored, but it seems consistent on my small selection of sample files
+			$info['dss']['sample_rate_index']  =                            getid3_lib::ord(substr($DSSheader, 1538,   1));  // this isn't certain, this may or may not be where the sample rate info is stored, but it seems consistent on my small selection of sample files
 			$info['audio']['sample_rate']      = $this->DSSsampleRateLookup($info['dss']['sample_rate_index']);
 		} else {
 			$this->getid3->warning('DSS above version 3 not fully supported in this version of getID3. Any additional documentation or format specifications would be welcome. This file is version '.$info['dss']['version']);

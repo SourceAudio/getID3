@@ -30,7 +30,7 @@ class getid3_pcd extends getid3_handler
 		$this->fseek($info['avdataoffset'] + 72);
 
 		$PCDflags = $this->fread(1);
-		$PCDisVertical = ((ord($PCDflags) & 0x01) ? true : false);
+		$PCDisVertical = ((getid3_lib::ord($PCDflags) & 0x01) ? true : false);
 
 
 		if ($PCDisVertical) {

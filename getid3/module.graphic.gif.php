@@ -171,7 +171,7 @@ class getid3_gif extends getid3_handler
 	public function GetLSBits($bits) {
 		static $bitbuffer = '';
 		while (strlen($bitbuffer) < $bits) {
-			$bitbuffer = str_pad(decbin(ord($this->fread(1))), 8, '0', STR_PAD_LEFT).$bitbuffer;
+			$bitbuffer = str_pad(decbin(getid3_lib::ord($this->fread(1))), 8, '0', STR_PAD_LEFT).$bitbuffer;
 		}
 		$value = bindec(substr($bitbuffer, 0 - $bits));
 		$bitbuffer = substr($bitbuffer, 0, 0 - $bits);

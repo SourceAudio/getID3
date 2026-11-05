@@ -109,7 +109,7 @@ class getid3_jpg extends getid3_handler
 
 			if (isset($info['jpg']['exif']['GPS']['GPSVersion'])) {
 				for ($i = 0; $i < 4; $i++) {
-					$version_subparts[$i] = ord(substr($info['jpg']['exif']['GPS']['GPSVersion'], $i, 1));
+					$version_subparts[$i] = getid3_lib::ord(substr($info['jpg']['exif']['GPS']['GPSVersion'], $i, 1));
 				}
 				$info['jpg']['exif']['GPS']['computed']['version'] = 'v'.implode('.', $version_subparts);
 			}
@@ -145,7 +145,7 @@ class getid3_jpg extends getid3_handler
 				$info['jpg']['exif']['GPS']['computed']['longitude'] = $direction_multiplier * ($computed_longitude[0] + ($computed_longitude[1] / 60) + ($computed_longitude[2] / 3600));
 			}
 			if (isset($info['jpg']['exif']['GPS']['GPSAltitudeRef'])) {
-				$info['jpg']['exif']['GPS']['GPSAltitudeRef'] = ord($info['jpg']['exif']['GPS']['GPSAltitudeRef']); // 0 = above sea level; 1 = below sea level
+				$info['jpg']['exif']['GPS']['GPSAltitudeRef'] = getid3_lib::ord($info['jpg']['exif']['GPS']['GPSAltitudeRef']); // 0 = above sea level; 1 = below sea level
 			}
 			if (isset($info['jpg']['exif']['GPS']['GPSAltitude'])) {
 				$direction_multiplier = (!empty($info['jpg']['exif']['GPS']['GPSAltitudeRef']) ? -1 : 1);           // 0 = above sea level; 1 = below sea level
